@@ -49,6 +49,7 @@ set(EXERCISES
     SpherePhong
     Hello3DCuboM2
     Hello3DTexM3
+    AV1_GB
 )
 
 add_compile_options(-Wno-pragmas)

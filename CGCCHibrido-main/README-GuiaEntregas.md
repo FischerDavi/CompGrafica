@@ -13,3 +13,7 @@ Detalhes: O cubo se mexe nas seguintes teclas: A e D movimentam para esquerda e 
 Módulo 3: Tarefa - Adicionando Texturas
 Arquivo de entrega: Hello3DTexM3.cpp e Hello3DTexM3.exe.
 Detalhes: O arquivo do M3 é exatamente igual ao do M2 (Hello3DCuboM2), porém ao invés de adicionar cor sólida, utilizei a função para ler OBJ, MTL e o png com a textura.
+
+Atividade Vivencial 1: M2 | Tarefa - Atividade vivencial 1
+Arquivo de entrega: AV1_GB.cpp e AV1_GB.exe
+Detalhes: Para selecionar os objetos, use a tecla TAB, e o restante dos movimentos seguem exatamente os mesmos dos módulos 2 e 3 descritos acima.
