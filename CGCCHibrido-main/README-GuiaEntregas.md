@@ -17,3 +17,7 @@ Detalhes: O arquivo do M3 é exatamente igual ao do M2 (Hello3DCuboM2), porém a
 Atividade Vivencial 1: M2 | Tarefa - Atividade vivencial 1
 Arquivo de entrega: AV1_GB.cpp e AV1_GB.exe
 Detalhes: Para selecionar os objetos, use a tecla TAB, e o restante dos movimentos seguem exatamente os mesmos dos módulos 2 e 3 descritos acima.
+
+Módulo 4: Tarefa - Adicionando Iluminação
+Arquivo de entrega: HelloPhongM4.cpp e HelloPhongM4.exe
+Detalhes: Os comandos da tarefa seguem exatamente os mesmos da atividade vivencial 1.
