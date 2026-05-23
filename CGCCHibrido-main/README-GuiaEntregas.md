@@ -21,3 +21,7 @@ Detalhes: Para selecionar os objetos, use a tecla TAB, e o restante dos moviment
 Módulo 4: Tarefa - Adicionando Iluminação
 Arquivo de entrega: HelloPhongM4.cpp e HelloPhongM4.exe
 Detalhes: Os comandos da tarefa seguem exatamente os mesmos da atividade vivencial 1.
+
+Atividade Vivencial 2: M4 | Tarefa - Atividade vivencial 2
+Arquivo de entrega: AV2_GB.cpp e AV2_GB.exe.
+Detalhes: Para ativar ou desativar as fontes de iluminação, utilizar a tecla 1 para a luz principal, 2 para a fill light e 3 para a backlight.
