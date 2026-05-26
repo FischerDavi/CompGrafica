@@ -25,3 +25,7 @@ Detalhes: Os comandos da tarefa seguem exatamente os mesmos da atividade vivenci
 Atividade Vivencial 2: M4 | Tarefa - Atividade vivencial 2
 Arquivo de entrega: AV2_GB.cpp e AV2_GB.exe.
 Detalhes: Para ativar ou desativar as fontes de iluminação, utilizar a tecla 1 para a luz principal, 2 para a fill light e 3 para a backlight.
+
+Módulo 5: Tarefa - Adicionando uma câmera em primeira pessoa
+Arquivo de entrega: HelloCameraM5.cpp e HelloCameraM5.exe
+Detalhes: Para mover a camera, usar A, S, W e D, e para rotacionar a câmera usar I, J, K e L. Para ligar ou desligar as luzes, utilizar 1, 2 e 3 como na atividade vivencial.
