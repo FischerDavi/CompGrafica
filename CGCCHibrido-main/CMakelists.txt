@@ -53,6 +53,8 @@ set(EXERCISES
     HelloPhongM4
     AV2_GB
     HelloCameraM5
+    HelloTrajM6
+    ProjetoGB
 )
 
 add_compile_options(-Wno-pragmas)
