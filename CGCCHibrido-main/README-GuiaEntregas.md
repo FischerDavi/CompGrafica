@@ -29,3 +29,6 @@ Detalhes: Para ativar ou desativar as fontes de iluminação, utilizar a tecla 1
 Módulo 5: Tarefa - Adicionando uma câmera em primeira pessoa
 Arquivo de entrega: HelloCameraM5.cpp e HelloCameraM5.exe
 Detalhes: Para mover a camera, usar A, S, W e D, e para rotacionar a câmera usar I, J, K e L. Para ligar ou desligar as luzes, utilizar 1, 2 e 3 como na atividade vivencial.
+
+Módulo 6: Tarefa - Definindo trajetórias para alguns objetos
+Arquivo de entrega: HelloTrajM6.cpp e HelloTrajM6.exe

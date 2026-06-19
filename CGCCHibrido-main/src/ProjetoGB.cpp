@@ -54,6 +54,14 @@ struct OBJ
     glm::vec3 scale;
 };
 
+//troca de personagem e textura
+struct ModelData
+{
+    GLuint VAO;
+    int nVertices;
+    GLuint textureID;
+};
+
 //prototipos
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -65,13 +73,17 @@ GLuint loadTexture(string filePath, int &width, int &height);
 
 GLuint createFloorPlane();
 
+GLuint createSkybox();
+
 //tela
 const GLuint WIDTH = 1000;
 const GLuint HEIGHT = 1000;
 
 //objetos
 vector<OBJ> objetos;
+vector<ModelData> modelos;
 
+int modeloAtual = 0;
 int objetoSelecionado = 0;
 
 bool gameOver = false;
@@ -230,6 +242,61 @@ GLuint createFloorPlane()
     return VAO;
 }
 
+GLuint createSkybox()
+{
+    float vertices[] =
+    {
+        // frente
+        -1,-1, 1,  1,-1, 1,  1, 1, 1,
+        -1,-1, 1,  1, 1, 1, -1, 1, 1,
+
+        // trás
+        -1,-1,-1, -1, 1,-1,  1, 1,-1,
+        -1,-1,-1,  1, 1,-1,  1,-1,-1,
+
+        // esquerda
+        -1,-1,-1, -1,-1, 1, -1, 1, 1,
+        -1,-1,-1, -1, 1, 1, -1, 1,-1,
+
+        // direita
+         1,-1,-1,  1, 1,-1,  1, 1, 1,
+         1,-1,-1,  1, 1, 1,  1,-1, 1,
+
+        // topo
+        -1, 1,-1, -1, 1, 1,  1, 1, 1,
+        -1, 1,-1,  1, 1, 1,  1, 1,-1,
+
+        // baixo
+        -1,-1,-1,  1,-1,-1,  1,-1, 1,
+        -1,-1,-1,  1,-1, 1, -1,-1, 1
+    };
+
+    GLuint VAO, VBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(vertices),
+                 vertices,
+                 GL_STATIC_DRAW);
+
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return VAO;
+}
+
 //funcao main
 int main()
 {
@@ -256,40 +323,75 @@ int main()
     glViewport(0,0,WIDTH,HEIGHT);
 
     glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_BACK);
 
     GLuint shaderID = setupShader();
 
     GLuint floorVAO = createFloorPlane();
 
+    GLuint skyVAO = createSkybox();
+
     int imgWidth, imgHeight;
 
-    GLuint texID = loadTexture(
+    // Suzanne
+    ModelData suzanne;
+
+    suzanne.VAO = loadSimpleOBJ(
+        "../assets/Modelos3D/Suzanne.obj",
+        suzanne.nVertices
+    );
+
+    suzanne.textureID = loadTexture(
         "../assets/Modelos3D/Suzanne.png",
         imgWidth,
         imgHeight
     );
 
+    modelos.push_back(suzanne);
+
+    // Tiger
+    ModelData tiger;
+
+    tiger.VAO = loadSimpleOBJ(
+        "../assets/Modelos3D/Tiger_I.obj",
+        tiger.nVertices
+    );
+
+    tiger.textureID = loadTexture(
+        "../assets/Modelos3D/Tiger_I.png",
+        imgWidth,
+        imgHeight
+    );
+
+    modelos.push_back(tiger);
+
     //textura do chao
     int floorWidth, floorHeight;
 
     GLuint floorTex = loadTexture(
-        "../assets/Modelos3D/untitled.png",
+        "../assets/Modelos3D/floor.jpg",
         floorWidth,
         floorHeight
+    );
+
+    int skyWidth, skyHeight;
+
+    GLuint skyTex = loadTexture(
+        "../assets/sky.jpg",
+        skyWidth,
+        skyHeight
     );
 
     // OBJ 1
     OBJ obj1;
 
-    obj1.VAO = loadSimpleOBJ(
-        "../assets/Modelos3D/Car.obj",
-        obj1.nVertices
-    );
+    obj1.VAO = modelos[modeloAtual].VAO;
+    obj1.nVertices = modelos[modeloAtual].nVertices;
 
     obj1.position =
     glm::vec3(
         lanePositions[0],
-        0.0f,
+        -1.0f,
         -40.0f
     );
     obj1.rotation = glm::vec3(0.0f);
@@ -300,15 +402,13 @@ int main()
     // OBJ 2
     OBJ obj2;
 
-    obj2.VAO = loadSimpleOBJ(
-        "../assets/Modelos3D/Car.obj",
-        obj2.nVertices
-    );
+    obj2.VAO = modelos[modeloAtual].VAO;
+    obj2.nVertices = modelos[modeloAtual].nVertices;
 
     obj2.position =
     glm::vec3(
         lanePositions[2],
-        0.0f,
+        -1.0f,
         -70.0f
     );
     obj2.rotation = glm::vec3(0.0f);
@@ -378,6 +478,35 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glDepthMask(GL_FALSE);
+
+        glm::mat4 skyModel = glm::mat4(1.0f);
+
+        skyModel = glm::translate(
+            skyModel,
+            camera.position
+        );
+
+        skyModel = glm::scale(
+            skyModel,
+            glm::vec3(150.0f)
+        );
+
+        glUniformMatrix4fv(
+            modelLoc,
+            1,
+            GL_FALSE,
+            glm::value_ptr(skyModel)
+        );
+
+        glBindTexture(GL_TEXTURE_2D, skyTex);
+
+        glBindVertexArray(skyVAO);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glDepthMask(GL_TRUE);
+
         // VIEW CAMERA FPS
         glm::mat4 view = glm::lookAt(
             camera.position,
@@ -414,16 +543,11 @@ int main()
         );
 
         // LUZES
-        OBJ principal = objetos[0];
+        glm::vec3 keyLight(0.0f, 8.0f, -10.0f);
 
-        glm::vec3 keyLight =
-            principal.position + glm::vec3(3.0f,3.0f,3.0f);
+        glm::vec3 fillLight(-8.0f, 4.0f, -5.0f);
 
-        glm::vec3 fillLight =
-            principal.position + glm::vec3(-3.0f,1.0f,2.0f);
-
-        glm::vec3 backLight =
-            principal.position + glm::vec3(0.0f,2.0f,-4.0f);
+        glm::vec3 backLight(0.0f, 6.0f, 10.0f);
 
         glUniform3fv(
             glGetUniformLocation(shaderID, "keyLightPos"),
@@ -460,19 +584,26 @@ int main()
 
         glActiveTexture(GL_TEXTURE0);
 
-        glBindTexture(GL_TEXTURE_2D, texID);
+        glBindTexture(
+            GL_TEXTURE_2D,
+            modelos[modeloAtual].textureID
+        );
 
         //chao
         glm::mat4 floorModel = glm::mat4(1.0f);
 
         floorModel = glm::translate(
             floorModel,
-            glm::vec3(0.0f, -2.0f, 0.0f)
+            glm::vec3(
+                camera.position.x,
+                -2.0f,
+                camera.position.z
+            )
         );
 
         floorModel = glm::scale(
             floorModel,
-            glm::vec3(30.0f, 1.0f, 30.0f)
+            glm::vec3(200.0f, 1.0f, 200.0f)
         );
 
         glUniformMatrix4fv(
@@ -524,14 +655,19 @@ int main()
                 glm::value_ptr(model)
             );
 
-            glBindTexture(GL_TEXTURE_2D, texID);
+            glBindTexture(
+                GL_TEXTURE_2D,
+                modelos[modeloAtual].textureID
+            );
 
-            glBindVertexArray(obj.VAO);
+            glBindVertexArray(
+                modelos[modeloAtual].VAO
+            );
 
             glDrawArrays(
                 GL_TRIANGLES,
                 0,
-                obj.nVertices
+                modelos[modeloAtual].nVertices
             );
         }
 
@@ -603,6 +739,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
         backLightEnabled = !backLightEnabled;
+
+    //troca modelo    
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    {
+        modeloAtual = (modeloAtual + 1) % modelos.size();
+
+        for(auto& obj : objetos)
+        {
+            obj.VAO = modelos[modeloAtual].VAO;
+            obj.nVertices = modelos[modeloAtual].nVertices;
+        }
+    }
 }
 
 //shader
