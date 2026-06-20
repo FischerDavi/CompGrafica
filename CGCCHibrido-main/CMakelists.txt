@@ -55,6 +55,7 @@ set(EXERCISES
     HelloCameraM5
     HelloTrajM6
     ProjetoGB
+    ProjetoGBackup
 )
 
 add_compile_options(-Wno-pragmas)

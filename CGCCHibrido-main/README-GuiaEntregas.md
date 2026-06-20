@@ -32,3 +32,10 @@ Detalhes: Para mover a camera, usar A, S, W e D, e para rotacionar a câmera usa
 
 Módulo 6: Tarefa - Definindo trajetórias para alguns objetos
 Arquivo de entrega: HelloTrajM6.cpp e HelloTrajM6.exe
+
+Integralização GB: M8 | Tarefa - Integralização GB
+Arquivo de entrega: ProjetoGB.cpp e ProjetoGB.exe
+Detalhes: A câmera pode ser movimentada com W, A, S e D para desviar dos objetos. Para olhar para os lados, usar L e J, e I e K para cima e para baixo, respectivamente.
+Para trocar o objeto e textura, clicar T para trocar entre tanque e suzzane.
+Para ligar/desligar a luz principal, fill ou back light, usar 1, 2 e 3 respectivamente.
+Para selecionar objeto 1 ou 2, usar TAB, e para rotacionar o objeto selecionado, usar X, Y ou Z para rotar no seu respectivo eixo.

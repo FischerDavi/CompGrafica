@@ -52,9 +52,6 @@ struct OBJ
     glm::vec3 position;
     glm::vec3 rotation;
     glm::vec3 scale;
-
-    int lane;
-    float bezierT;
 };
 
 //troca de personagem e textura
@@ -64,31 +61,6 @@ struct ModelData
     int nVertices;
     GLuint textureID;
 };
-
-struct BezierLane
-{
-    glm::vec3 p0;
-    glm::vec3 p1;
-    glm::vec3 p2;
-    glm::vec3 p3;
-};
-
-glm::vec3 bezierPoint(
-    float t,
-    glm::vec3 p0,
-    glm::vec3 p1,
-    glm::vec3 p2,
-    glm::vec3 p3
-)
-{
-    float u = 1.0f - t;
-
-    return
-        (u*u*u) * p0 +
-        (3*u*u*t) * p1 +
-        (3*u*t*t) * p2 +
-        (t*t*t) * p3;
-}
 
 //prototipos
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -100,6 +72,8 @@ GLuint loadSimpleOBJ(string filePATH, int &nVertices);
 GLuint loadTexture(string filePath, int &width, int &height);
 
 GLuint createFloorPlane();
+
+GLuint createSkybox();
 
 //tela
 const GLuint WIDTH = 1000;
@@ -115,38 +89,12 @@ int objetoSelecionado = 0;
 bool gameOver = false;
 
 int currentLane = 0;
-float bezierT = 0.0f;
-float bezierSpeed = 0.0005f;
 
 float lanePositions[3] =
 {
     -4.0f,
      0.0f,
      4.0f
-};
-
-std::vector<BezierLane> lanes =
-{
-    {
-        glm::vec3(3.0f, -1.0f, -180.0f),
-        glm::vec3(2.0f, -1.0f, -60.0f),
-        glm::vec3(1.0f, -1.0f,  60.0f),
-        glm::vec3(3.0f, -1.0f, 180.0f)
-    },
-
-    {
-        glm::vec3(3.0f, -1.0f, -180.0f),
-        glm::vec3(4.0f, -1.0f, -60.0f),
-        glm::vec3(1.0f, -1.0f,  60.0f),
-        glm::vec3(-1.0f, -1.0f, 180.0f)
-    },
-
-    {
-        glm::vec3(3.0f, -1.0f, -180.0f),
-        glm::vec3(-1.0f, -1.0f, -60.0f),
-        glm::vec3(2.0f, -1.0f,  60.0f),
-        glm::vec3(4.0f, -1.0f, 180.0f)
-    }
 };
 
 //luzes
@@ -294,6 +242,61 @@ GLuint createFloorPlane()
     return VAO;
 }
 
+GLuint createSkybox()
+{
+    float vertices[] =
+    {
+        // frente
+        -1,-1, 1,  1,-1, 1,  1, 1, 1,
+        -1,-1, 1,  1, 1, 1, -1, 1, 1,
+
+        // trás
+        -1,-1,-1, -1, 1,-1,  1, 1,-1,
+        -1,-1,-1,  1, 1,-1,  1,-1,-1,
+
+        // esquerda
+        -1,-1,-1, -1,-1, 1, -1, 1, 1,
+        -1,-1,-1, -1, 1, 1, -1, 1,-1,
+
+        // direita
+         1,-1,-1,  1, 1,-1,  1, 1, 1,
+         1,-1,-1,  1, 1, 1,  1,-1, 1,
+
+        // topo
+        -1, 1,-1, -1, 1, 1,  1, 1, 1,
+        -1, 1,-1,  1, 1, 1,  1, 1,-1,
+
+        // baixo
+        -1,-1,-1,  1,-1,-1,  1,-1, 1,
+        -1,-1,-1,  1,-1, 1, -1,-1, 1
+    };
+
+    GLuint VAO, VBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(vertices),
+                 vertices,
+                 GL_STATIC_DRAW);
+
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return VAO;
+}
+
 //funcao main
 int main()
 {
@@ -325,6 +328,8 @@ int main()
     GLuint shaderID = setupShader();
 
     GLuint floorVAO = createFloorPlane();
+
+    GLuint skyVAO = createSkybox();
 
     int imgWidth, imgHeight;
 
@@ -369,6 +374,14 @@ int main()
         floorHeight
     );
 
+    int skyWidth, skyHeight;
+
+    GLuint skyTex = loadTexture(
+        "../assets/sky.jpg",
+        skyWidth,
+        skyHeight
+    );
+
     // OBJ 1
     OBJ obj1;
 
@@ -383,8 +396,6 @@ int main()
     );
     obj1.rotation = glm::vec3(0.0f);
     obj1.scale = glm::vec3(1.0f);
-    obj1.lane = rand() % 3;
-    obj1.bezierT = 0.0f;
 
     objetos.push_back(obj1);
 
@@ -402,8 +413,6 @@ int main()
     );
     obj2.rotation = glm::vec3(0.0f);
     obj2.scale = glm::vec3(1.0f);
-    obj2.lane = rand() % 3;
-    obj2.bezierT = 0.5f;
 
     objetos.push_back(obj2);
 
@@ -427,40 +436,40 @@ int main()
 
         if(!gameOver)
         {
-            if(bezierT > 1.0f)
-            {bezierT = 0.0f;}
-
-            for(auto& obj : objetos)
-            {
-                obj.bezierT += bezierSpeed;
-
-                if(obj.bezierT > 1.0f)
-                {
-                    obj.bezierT = 0.0f;
-                    obj.lane = rand() % 3;
-                }
-
-                BezierLane& lane = lanes[obj.lane];
-
-                obj.position = bezierPoint(
-                    obj.bezierT,
-                    lane.p0,
-                    lane.p1,
-                    lane.p2,
-                    lane.p3
-                );
-            }
             for(auto &obj : objetos)
             {
-                float dist = glm::distance(
-                    obj.position,
-                    camera.position
-                );
+                obj.position.z += 0.10f;
 
-                if(dist < 2.0f)
+                if(obj.position.z > 10.0f)
+                {
+                    int lane = rand() % 3;
+
+                    obj.position.x =
+                        lanePositions[lane];
+
+                    obj.position.z =
+                        -80.0f - (rand() % 50);
+                }
+            }
+        }
+
+        if(!gameOver)
+        {
+            for(auto &obj : objetos)
+            {
+                float dx =
+                    abs(obj.position.x - camera.position.x);
+
+                float dz =
+                    abs(obj.position.z - camera.position.z);
+
+                if(dx < 1.5f && dz < 1.5f)
                 {
                     gameOver = true;
-                    cout << "GAME OVER!" << endl;
+
+                    cout
+                        << "GAME OVER!"
+                        << endl;
                 }
             }
         }
@@ -468,6 +477,35 @@ int main()
         glClearColor(0.1f,0.1f,0.1f,1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glDepthMask(GL_FALSE);
+
+        glm::mat4 skyModel = glm::mat4(1.0f);
+
+        skyModel = glm::translate(
+            skyModel,
+            camera.position
+        );
+
+        skyModel = glm::scale(
+            skyModel,
+            glm::vec3(150.0f)
+        );
+
+        glUniformMatrix4fv(
+            modelLoc,
+            1,
+            GL_FALSE,
+            glm::value_ptr(skyModel)
+        );
+
+        glBindTexture(GL_TEXTURE_2D, skyTex);
+
+        glBindVertexArray(skyVAO);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glDepthMask(GL_TRUE);
 
         // VIEW CAMERA FPS
         glm::mat4 view = glm::lookAt(
@@ -712,30 +750,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             obj.VAO = modelos[modeloAtual].VAO;
             obj.nVertices = modelos[modeloAtual].nVertices;
         }
-    }
-
-    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
-    {
-        objetoSelecionado =
-            (objetoSelecionado + 1) % objetos.size();
-
-        cout << "Objeto selecionado: "
-            << objetoSelecionado << endl;
-    }
-
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        objetos[objetoSelecionado].rotation.x += 10.0f;
-    }
-
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
-    {
-        objetos[objetoSelecionado].rotation.y += 10.0f;
-    }
-
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        objetos[objetoSelecionado].rotation.z += 10.0f;
     }
 }
 
